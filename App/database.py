@@ -11,6 +11,7 @@ SessionLocal = sessionmaker(autocommit = False, autoflush= False, bind = engine)
 
 Base = declarative_base()
 
+# this function is a dependency that creates a session each time w use the database then closes it when we are done
 def get_db():
     db = SessionLocal()
     try:
