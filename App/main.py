@@ -187,17 +187,17 @@ def test_posts(db : Session = Depends(get_db)):
     # understanding on what sql commands to use, for example in here, db.query will retrieve all the posts from
     #  our table which is equivalant to select from in sql,
     #  then we add a methode(.all) fr example, to really run smth with thetable that got retreived.
-    return {"data" : posts }
+    return posts 
 
 
 @app.get("/posts")
-def get_posts(db : Session = Depends(get_db)):
+def get_posts(db : Session = Depends(get_db), response_model=schemas.Post):
     # # we are going to use the cursor to excute queries
     # cursor.execute("""SELECT * FROM posts""")
     # # to actually run the command we use:
     # posts = cursor.fetchall()
     posts =  db.query(models.Post).all()
-    return {"data": posts}
+    return posts
 
 
 # @app.post("/posts")
@@ -213,7 +213,7 @@ def get_posts(db : Session = Depends(get_db)):
 # and creates a post and add it to an array of posts called my_posts
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
 def create_posts(post: schemas.PostCreate, db : Session = Depends(get_db)):
     # # post_dict = post.dict()
     # # post_dict['id'] = randrange(1, 10000000)
@@ -231,13 +231,13 @@ def create_posts(post: schemas.PostCreate, db : Session = Depends(get_db)):
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
 
 
 # now let's create a path application to retrieve a single post
 @app.get("/posts/{id}")
-def get_post(id: int, db : Session = Depends(get_db)):
+def get_post(id: int, db : Session = Depends(get_db), response_model=schemas.Post):
     # post = find_post(int(id))
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id)))
     # post = cursor.fetchone()
@@ -249,7 +249,7 @@ def get_post(id: int, db : Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with id :{id} was not found"
         )
-    return {"post details": post}
+    return post
 
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -275,7 +275,7 @@ def delete_post(id: int, db : Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_post(id: int, post: schemas.PostBase, db : Session = Depends(get_db)):
+def update_post(id: int, post: schemas.PostBase, db : Session = Depends(get_db), response_model=schemas.Post):
     # index = find_index_post(id)
     # cursor.execute("""UPDATE posts 
     #                SET title =%s, content = %s, published = %s
@@ -296,4 +296,4 @@ def update_post(id: int, post: schemas.PostBase, db : Session = Depends(get_db))
     # post_dict = post.dict()  # Convertit ton objet post (de type Post, créé par Pydantic) en dictionnaire Python.
     # post_dict["id"] = id  # Ajoute la clé "id" dans le dictionnaire pour être sûr que ton post mis à jour garde le même identifiant.
     # my_posts[index] = post_dict  # remplace l’ancien post (celui à la position index dans la liste) par le nouveau dictionnaire mis à jour.
-    return {"data": post_query.first()}
+    return post_query.first()
