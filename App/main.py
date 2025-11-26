@@ -116,12 +116,14 @@ from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.params import Body
 from pydantic import BaseModel
 
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from .database import SessionLocal, engine, get_db
-from . import models, schemas
+from . import models, schemas,utils
+
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -302,9 +304,22 @@ def update_post(id: int, post: schemas.PostBase, db : Session = Depends(get_db),
 
 @app.post("/users", status_code=status.HTTP_201_CREATED,  response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db :Session = Depends(get_db)):
-    new_user = models.User(**user.dict())
+
+    # lets hash the password
+    # hashed_password  = pwd_context.hash(user.password)
+    # user.password = hashed_password
+    safe_password = user.password[:72]
+    hashed_password = utils.hash(safe_password)
+    # new_user = models.User(**user.dict())
+    new_user = models.User(
+        email=user.email,
+        password=hashed_password
+    )
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    print("PASSWORD LENGTH:", len(user.password))
+
     return new_user
     
